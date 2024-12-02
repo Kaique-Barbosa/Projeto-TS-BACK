@@ -1,0 +1,162 @@
+2. Criando uma Instância do Axios
+Criar uma instância personalizada do Axios pode ajudar a gerenciar suas requisições de API de forma mais eficaz, especialmente se você precisar definir uma URL base ou adicionar interceptores.
+
+Crie um arquivo para a instância do Axios: Crie um novo arquivo chamado axiosInstance.js em um diretório utils:
+
+javascript
+
+Verify
+
+Open In Editor
+Edit
+Copy code
+// utils/axiosInstance.js
+import axios from 'axios';
+
+const AxiosInstance = axios.create({
+  baseURL: 'http://localhost:5000/api', // Altere isso para a URL do seu servidor Express
+});
+
+export default AxiosInstance;
+
+--------------------------------------------------------------------------------
+
+3. Fazendo Requisições de API em Componentes Next.js
+Você pode usar a instância do Axios para fazer requisições de API em seus componentes Next.js. Veja como fazer isso:
+
+Usando Axios em um Componente: Crie ou modifique um componente (por exemplo, pages/index.js) para buscar dados das suas rotas Express:
+
+javascript
+
+Verify
+
+Open In Editor
+Edit
+Copy code
+// pages/index.js
+import { useEffect, useState } from 'react';
+import AxiosInstance from '../utils/axiosInstance';
+
+const Home = () => {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await AxiosInstance.get('/products'); // Ajuste o endpoint conforme necessário
+        setData(response.data);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (error) return <div>Erro: {error}</div>;
+  if (!data) return <div>Carregando...</div>;
+
+  return (
+    <div>
+      <h1>Produtos</h1>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  );
+};
+
+export default Home;
+
+
+--------------------------------------------------------------------------------
+
+
+4. Usando getStaticProps ou getServerSideProps para Busca de Dados
+O Next.js fornece métodos para busca de dados em tempo de build ou em tempo de requisição. Você pode usar esses métodos para buscar dados da sua API Express.
+
+Usando getStaticProps:
+
+javascript
+
+Verify
+
+Open In Editor
+Edit
+Copy code
+// pages/index.js
+import AxiosInstance from '../utils/axiosInstance';
+
+export const getStaticProps = async () => {
+  try {
+    const response = await AxiosInstance.get('/products');
+    return {
+      props: {
+        data: response.data,
+      },
+    };
+  } catch (error) {
+    return {
+      props: {
+        error: error.message,
+      },
+    };
+  }
+};
+
+const Home = ({ data, error }) => {
+  if (error) return <div>Erro: {error}</div>;
+  return (
+    <div>
+      <h1>Produtos</h1>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  );
+};
+
+export default Home;
+Usando getServerSideProps:
+
+javascript
+
+Verify
+
+Open In Editor
+Edit
+Copy code
+// pages/index.js
+import AxiosInstance from '../utils/axiosInstance';
+
+export const getServerSideProps = async () => {
+  try {
+    const response = await AxiosInstance.get('/products');
+    return {
+      props: {
+        data: response.data,
+      },
+    };
+  } catch (error) {
+    return {
+      props: {
+        error: error.message,
+      },
+    };
+  }
+};
+
+const Home = ({ data, error }) => {
+  if (error) return <div>Erro: {error}</div>;
+  return (
+    <div>
+      <h1>Produtos</h1>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  );
+};
+
+export default Home;
+
+
+--------------------------------------------------------------------------------
+
+5. Conclusão
+Integração com Axios: Seguindo os passos acima, você pode integrar facilmente o Axios no seu aplicativo Next.js para acessar rotas do Express.

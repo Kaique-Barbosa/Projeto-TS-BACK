@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Professor {
+  idprofessor   Int      @id @default(autoincrement())
+  nome          String?  @db.VarChar(45)
+  areaAtuacao   String?  @db.VarChar(45)
+  telefone      String?  @db.VarChar(45)
+  turmas        Turma[]
+}
+
+model Turma {
+  codTurma                Int      @id @default(autoincrement()) // Adicionando auto-incremento
+  nome                    String?  @db.VarChar(45)
+  periodo                 String?  @db.VarChar(45)
+  fk_professor_idprofessor Int
+  professor               Professor @relation(fields: [fk_professor_idprofessor], references: [idprofessor])
+  alunos                  Aluno[]
+}
+
+model Aluno {
+  id                     Int      @id @default(autoincrement())
+  nome                   String   @db.VarChar(45)
+  matricula              Int
+  dataNascimento         DateTime // Corrigido para DateTime
+  fk_turma_codTurma      Int
+  turmaRelation          Turma    @relation(fields: [fk_turma_codTurma], references: [codTurma])
+}
+
+//------------------------------------
+
+// model Aluno {
+//   matricula        Int      @id @default(autoincrement())
+//   nome             String
+//   dataDeNascimento DateTime
+//   turmaId          Int 	    @unique
+//   turma            Turma    @relation(fields: [turmaId], references: [codigo])
+// }
+
+// model Professor {
+//   id              Int      @id @default(autoincrement())
+//   nome            String
+//   areaDeAtuacao   String
+//   telefone        String
+// }
+
+// model Turma {
+//   codigo        Int        @id @default(autoincrement())
+//   nome          String
+//   periodo       String
+//   professorId   Int        @unique
+//   professor     Professor  @relation(fields: [professorId], references: [id])
+// }

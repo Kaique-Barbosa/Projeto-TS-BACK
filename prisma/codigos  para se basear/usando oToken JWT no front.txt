@@ -1,0 +1,137 @@
+1. Função de Login no Next.js
+Crie uma função de login, onde você faz a requisição e armazena o token no sessionStorage:
+
+javascript
+Copiar código
+// services/auth.js
+export async function login(email, senha) {
+  try {
+    const response = await fetch('http://localhost:3000/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, senha })
+    });
+    const data = await response.json();
+
+    if (data.token) {
+      // Armazena o token no sessionStorage
+      sessionStorage.setItem('token', data.token);
+      return { success: true };
+    } else {
+      console.error("Erro de autenticação:", data.error);
+      return { success: false, error: data.error };
+    }
+  } catch (error) {
+    console.error("Erro na requisição:", error);
+    return { success: false, error };
+  }
+}
+
+-----------------------------------------------------------------------
+
+2. Usando o Token no Frontend (Exemplo de Página de Login)
+Agora, você pode criar uma página de login que chama essa função login e armazena o token no sessionStorage.
+
+javascript
+Copiar código
+// pages/login.js
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { login } from '../services/auth';
+
+export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [error, setError] = useState(null);
+  const router = useRouter();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const result = await login(email, senha);
+    if (result.success) {
+      // Redireciona para uma página protegida, por exemplo
+      router.push('/dashboard');
+    } else {
+      setError(result.error || 'Erro no login');
+    }
+  };
+
+  return (
+    <div>
+      <h1>Login</h1>
+      <form onSubmit={handleLogin}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Senha"
+          value={senha}
+          onChange={(e) => setSenha(e.target.value)}
+        />
+        <button type="submit">Entrar</button>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+      </form>
+    </div>
+  );
+}
+
+-----------------------------------------------------------------------
+
+3. Usando o Token em Requisições Autenticadas
+Para usar o token em uma requisição autenticada, você pode criar uma função que faz essa requisição e inclui o token no cabeçalho.
+
+javascript
+Copiar código
+// services/api.js
+export async function fetchProtectedData() {
+  const token = sessionStorage.getItem('token');
+  
+  const response = await fetch('http://localhost:3000/protected-route', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  return await response.json();
+}
+-----------------------------------------------------------------------
+
+4. Exemplo de Página Protegida que Usa o Token
+Aqui está como você pode usar a função fetchProtectedData em uma página protegida:
+
+javascript
+Copiar código
+// pages/dashboard.js
+import { useEffect, useState } from 'react';
+import { fetchProtectedData } from '../services/api';
+
+export default function Dashboard() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const result = await fetchProtectedData();
+      setData(result);
+    };
+    fetchData();
+  }, []);
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      {data ? <pre>{JSON.stringify(data, null, 2)}</pre> : <p>Carregando...</p>}
+    </div>
+  );
+}
+-----------------------------------------------------------------------
+
+Observação sobre SSR e Client-Side Only
+Como sessionStorage é uma API do navegador, você deve acessar o token apenas no client-side (ou seja, dentro de useEffect ou em funções que rodam no navegador). Em uma aplicação Next.js com SSR, não tente acessar sessionStorage diretamente no lado do servidor.
+
+Esses exemplos devem te dar uma base sólida para gerenciar autenticação usando JWT em um projeto Next.js.
