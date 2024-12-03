@@ -6,30 +6,31 @@ const turmaRouter = express.Router();
 // rota para criar uma turma
 turmaRouter.post("/cadastrar", async (req, res) => {
   try {
-    const {codturma, nome, periodo, professor } = req.body;
+    const { nome, periodo, professor } = req.body;
 
-    if(!codturma || !nome || !periodo || !professor){
+    if( !nome || !periodo || !professor){
       return res.status(401).json("Preencha todos os campos")
     }
 
     const consultaTurma = await prisma.turma.findFirst({
       where:{
-        codTurma:codturma
+        nome, 
+        periodo, 
+        fk_professor_idprofessor:professor
       }
     }) 
 
-    if(!consultaTurma){
+    if(consultaTurma){
       return res.status(400).json("Já exite uma turma cadastrada")
     }
 
     
 
-      await prisma.professor.create({
+      await prisma.turma.create({
       data: {
-        codturma,
         nome, 
         periodo, 
-        professor
+        fk_professor_idprofessor:professor
       },
     });
 
@@ -40,6 +41,26 @@ turmaRouter.post("/cadastrar", async (req, res) => {
 });
 
 // rota para buscar uma turma 
+turmaRouter.get("/listar", async (req, res) => {
+  try {
+    const turma = await prisma.turma.findMany({include:{
+      professor:{
+        select:{
+          nome:true
+        }
+      }
+    }});
+
+    if (!turma) {
+      return res.status(404).json({ error: "Não existe turma cadastrada" });
+    }
+    res.status(200).json(turma);
+
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao buscar Turmas" });
+  }
+});
+
 turmaRouter.get("/listar/:id", async (req, res) => {
   try {
     const { id } = req.params;

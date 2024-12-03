@@ -3,23 +3,22 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const alunoRouter = express.Router();
 
-// rota para cadastro de alunos
+// Rota para cadastro de alunos
 alunoRouter.post("/cadastrar", async (req, res) => {
   try {
-    const { nome, matricula, dataNascimento, turma } = req.body;
+    const { nome, dataNascimento, turma } = req.body;
+
+    if (!turma) {
+      return res.status(400).json("Insira uma turma");
+    }
 
     const consulta = await prisma.aluno.findFirst({
       where: {
         nome: nome,
-        matricula: matricula,
         dataNascimento: dataNascimento,
-        turma: turma,
+        fk_turma_codTurma: turma,
       },
     });
-
-    if (!turma) {
-      return res.send(400).json("Insira uma turma");
-    }
 
     if (consulta) {
       return res.status(401).json("Já existe um aluno com esses dados");
@@ -28,29 +27,30 @@ alunoRouter.post("/cadastrar", async (req, res) => {
     const aluno = await prisma.aluno.create({
       data: {
         nome,
-        matricula,
         dataNascimento,
-        turma,
+        fk_turma_codTurma: turma, // Certifique-se de usar o campo correto
       },
     });
 
-    res.status(200).json({ message: "Aluno Cadastrado com sucesso" });
+    res.status(201).json({ message: "Aluno Cadastrado com sucesso", aluno });
   } catch (error) {
+    console.error(error); // Logando o erro
     res.status(500).json({ error: "Erro ao cadastrar aluno" });
   }
 });
 
-// rota para leitura de alunos
+// Rota para leitura de alunos
 alunoRouter.get("/listar", async (req, res) => {
   try {
     const alunos = await prisma.aluno.findMany();
     res.status(200).json(alunos);
   } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar aluno" });
+    console.error(error); // Logando o erro
+    res.status(500).json({ error: "Erro ao buscar alunos" });
   }
 });
 
-// rota para buscar um aluno em especifico
+// Rota para buscar um aluno específico
 alunoRouter.get("/listar/:matricula", async (req, res) => {
   try {
     const { matricula } = req.params;
@@ -66,11 +66,12 @@ alunoRouter.get("/listar/:matricula", async (req, res) => {
 
     res.status(200).json(aluno);
   } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar Aluno" });
+    console.error(error); // Logando o erro
+    res.status(500).json({ error: "Erro ao buscar aluno" });
   }
 });
 
-// rota para atualizar atualizar um aluno
+// Rota para atualizar um aluno
 alunoRouter.put("/atualizar/:matricula", async (req, res) => {
   try {
     const { matricula } = req.params;
@@ -83,7 +84,7 @@ alunoRouter.put("/atualizar/:matricula", async (req, res) => {
       data: {
         nome,
         dataNascimento,
-        turma,
+        fk_turma_codTurma: turma, // Certifique-se de usar o campo correto
       },
     });
 
@@ -92,11 +93,12 @@ alunoRouter.put("/atualizar/:matricula", async (req, res) => {
       aluno: alunoAtualizado,
     });
   } catch (error) {
+    console.error(error); // Logando o erro
     res.status(500).json({ error: "Erro ao atualizar aluno" });
   }
 });
 
-// rota para deletar um aluno
+// Rota para deletar um aluno
 alunoRouter.delete("/:matricula", async (req, res) => {
   try {
     const { matricula } = req.params;
@@ -108,6 +110,7 @@ alunoRouter.delete("/:matricula", async (req, res) => {
     });
     res.status(200).json({ message: "Aluno deletado com sucesso" });
   } catch (error) {
+    console.error(error); // Logando o erro
     res.status(500).json({ error: "Erro ao deletar aluno" });
   }
 });
