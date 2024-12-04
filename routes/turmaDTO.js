@@ -49,7 +49,8 @@ turmaRouter.get("/listar", async (req, res) => {
           nome:true
         }
       }
-    }});
+    }}
+  );
 
     if (!turma) {
       return res.status(404).json({ error: "Não existe turma cadastrada" });

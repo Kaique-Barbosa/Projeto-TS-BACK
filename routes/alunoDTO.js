@@ -7,7 +7,7 @@ const alunoRouter = express.Router();
 alunoRouter.post("/cadastrar", async (req, res) => {
   try {
     const { nome, dataNascimento, turma } = req.body;
-
+    console.log(nome, dataNascimento, turma )
     if (!turma) {
       return res.status(400).json("Insira uma turma");
     }
@@ -16,7 +16,7 @@ alunoRouter.post("/cadastrar", async (req, res) => {
       where: {
         nome: nome,
         dataNascimento: dataNascimento,
-        fk_turma_codTurma: turma,
+        fk_turma_codTurma: parseInt(turma),
       },
     });
 
@@ -28,7 +28,7 @@ alunoRouter.post("/cadastrar", async (req, res) => {
       data: {
         nome,
         dataNascimento,
-        fk_turma_codTurma: turma, // Certifique-se de usar o campo correto
+        fk_turma_codTurma: parseInt(turma), // Certifique-se de usar o campo correto
       },
     });
 
@@ -42,7 +42,13 @@ alunoRouter.post("/cadastrar", async (req, res) => {
 // Rota para leitura de alunos
 alunoRouter.get("/listar", async (req, res) => {
   try {
-    const alunos = await prisma.aluno.findMany();
+    const alunos = await prisma.aluno.findMany({include:{
+     turma:{
+      select:{
+        nome:true
+      }
+     }
+    }});
     res.status(200).json(alunos);
   } catch (error) {
     console.error(error); // Logando o erro
@@ -56,8 +62,16 @@ alunoRouter.get("/listar/:matricula", async (req, res) => {
     const { matricula } = req.params;
     const aluno = await prisma.aluno.findFirst({
       where: {
-        matricula: parseInt(matricula),
+        matricula: matricula,
       },
+      include:{
+        turma:{
+          select:{
+            codTurma:true,
+            nome:true
+          }
+        }
+      }
     });
 
     if (!aluno) {
@@ -76,15 +90,16 @@ alunoRouter.put("/atualizar/:matricula", async (req, res) => {
   try {
     const { matricula } = req.params;
     const { nome, dataNascimento, turma } = req.body;
+  
 
     const alunoAtualizado = await prisma.aluno.update({
       where: {
-        matricula: parseInt(matricula),
+        matricula: matricula,
       },
       data: {
         nome,
         dataNascimento,
-        fk_turma_codTurma: turma, // Certifique-se de usar o campo correto
+        fk_turma_codTurma: turma, 
       },
     });
 
@@ -105,7 +120,7 @@ alunoRouter.delete("/:matricula", async (req, res) => {
 
     await prisma.aluno.delete({
       where: {
-        matricula: parseInt(matricula),
+        matricula: matricula,
       },
     });
     res.status(200).json({ message: "Aluno deletado com sucesso" });
