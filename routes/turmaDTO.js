@@ -69,6 +69,13 @@ turmaRouter.get("/listar/:id", async (req, res) => {
       where: {
         codTurma: parseInt(id),
       },
+      include:{
+        professor:{
+          select:{
+            nome:true
+          }
+        }
+      }
     });
 
     if (!turma) {
@@ -85,17 +92,18 @@ turmaRouter.get("/listar/:id", async (req, res) => {
 turmaRouter.put("/atualizar/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const {nome, periodo, professor} = req.body;
+    const {codTurma, nome, periodo, professor} = req.body;
 
     const turma = await prisma.turma.update({
       where: {
         codTurma: parseInt(id),
       },
       data: {
+        codTurma,
         nome,
         periodo,
-        professor,
-      },
+        fk_professor_idprofessor: professor,
+      }
     });
 
     res
