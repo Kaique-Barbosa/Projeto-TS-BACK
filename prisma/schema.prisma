@@ -10,7 +10,7 @@ datasource db {
 model Aluno {
   matricula              String   @id @default(uuid()) @db.VarChar(36) // Alterado para String e UUID
   nome                   String   @db.VarChar(45)
-  dataNascimento         DateTime
+  dataNascimento         DateTime @db.Date
   fk_turma_codTurma      Int
   turma                  Turma    @relation("TurmaAluno", fields: [fk_turma_codTurma], references: [codTurma])
 
